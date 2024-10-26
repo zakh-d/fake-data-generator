@@ -70,18 +70,23 @@ if __name__ == "__main__":
         epilog="",
     )
 
-    parser.add_argument('config_filename')
-    
+    parser.add_argument("config_filename")
 
     args = parser.parse_args()
-    
-    with open(args.config_filename, 'r') as config_file:
+
+    with open(args.config_filename, "r") as config_file:
         configuration = yaml.safe_load(config_file)
-    
-    fake = Faker('pl_PL')
 
-    user_generator = UserGenerator(fake, start_index=configuration['user']['start_id'])
-    car_type_generator = CarTypeGenerator(fake, start_index=configuration['car_type']['start_id'])
+    fake = Faker("pl_PL")
 
-    user_generator.generate_many(configuration['user']['count']).to_csv(configuration['user']['output_file'])
-    car_type_generator.generate_many(configuration['car_type']['count']).to_csv(configuration['car_type']['output_file'])
+    user_generator = UserGenerator(fake, start_index=configuration["user"]["start_id"])
+    car_type_generator = CarTypeGenerator(
+        fake, start_index=configuration["car_type"]["start_id"]
+    )
+
+    user_generator.generate_many(configuration["user"]["count"]).to_csv(
+        configuration["user"]["output_file"], index=False
+    )
+    car_type_generator.generate_many(configuration["car_type"]["count"]).to_csv(
+        configuration["car_type"]["output_file"], index=False
+    )
