@@ -1,10 +1,9 @@
-from operator import ge
 import random
 from abc import ABC
 from argparse import ArgumentParser
 
-import yaml
 import pandas as pd
+import yaml
 from faker import Faker
 
 from schemas import CarType, ParkingStation, User
@@ -103,11 +102,14 @@ if __name__ == "__main__":
         configuration = yaml.safe_load(config_file)
 
     fake = Faker("pl_PL")
-    
+
     for key, value in configuration.items():
-        
         if key not in generator_mapper:
             continue
 
-        generator: ItemGenerator = generator_mapper[key](fake, start_index=value['start_id'])
-        generator.generate_many(value['count']).to_csv(value['output_file'], index=False)
+        generator: ItemGenerator = generator_mapper[key](
+            fake, start_index=value["start_id"]
+        )
+        generator.generate_many(value["count"]).to_csv(
+            value["output_file"], index=False
+        )
