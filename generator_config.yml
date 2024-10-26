@@ -6,3 +6,7 @@ car_type:
   start_id: 0
   count: 20
   output_file: generated_data/car_types.csv
+parking_station:
+  start_id: 0
+  count: 100
+  output_file: generated_data/parking_station.csv

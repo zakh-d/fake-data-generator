@@ -1,3 +1,4 @@
+from operator import ge
 import random
 from abc import ABC
 from argparse import ArgumentParser
@@ -6,7 +7,7 @@ import yaml
 import pandas as pd
 from faker import Faker
 
-from schemas import CarType, User
+from schemas import CarType, ParkingStation, User
 
 CAR_TYPES = {
     "opel": ["astra", "insignia"],
@@ -21,6 +22,10 @@ class ItemGenerator(ABC):
         self._fake = fake
         self._curr_idx = start_index
 
+    def _get_curr_idx_and_update(self) -> int:
+        self._curr_idx += 1
+        return self._curr_idx - 1
+
     def generate(self) -> object:
         raise NotImplementedError()
 
@@ -33,8 +38,7 @@ class ItemGenerator(ABC):
 
 class UserGenerator(ItemGenerator):
     def generate(self) -> User:
-        id_ = self._curr_idx
-        self._curr_idx += 1
+        id_ = self._get_curr_idx_and_update()
         email = self._fake.email()
         first_name = self._fake.first_name()
         last_name = self._fake.last_name()
@@ -46,10 +50,24 @@ class UserGenerator(ItemGenerator):
         }
 
 
+class ParkingStationGenerator(ItemGenerator):
+    def generate(self) -> ParkingStation:
+        id_ = self._get_curr_idx_and_update()
+        latitude = random.random()
+        longitude = random.random()
+        max_capacity = random.randint(5, 11)
+
+        return {
+            "id": id_,
+            "latitude": latitude,
+            "longitude": longitude,
+            "max_capacity": max_capacity,
+        }
+
+
 class CarTypeGenerator(ItemGenerator):
     def generate(self) -> CarType:
-        id_ = self._curr_idx
-        self._curr_idx += 1
+        id_ = self._get_curr_idx_and_update()
         manufacturer = random.choice(list(CAR_TYPES.keys()))
         model = random.choice(CAR_TYPES[manufacturer])
         year = random.randint(2000, 2020)
@@ -61,6 +79,13 @@ class CarTypeGenerator(ItemGenerator):
             "production_year": year,
             "price_per_minute": price_per_minute,
         }
+
+
+generator_mapper = {
+    "user": UserGenerator,
+    "car_type": CarTypeGenerator,
+    "parking_station": ParkingStationGenerator,
+}
 
 
 if __name__ == "__main__":
@@ -78,15 +103,11 @@ if __name__ == "__main__":
         configuration = yaml.safe_load(config_file)
 
     fake = Faker("pl_PL")
+    
+    for key, value in configuration.items():
+        
+        if key not in generator_mapper:
+            continue
 
-    user_generator = UserGenerator(fake, start_index=configuration["user"]["start_id"])
-    car_type_generator = CarTypeGenerator(
-        fake, start_index=configuration["car_type"]["start_id"]
-    )
-
-    user_generator.generate_many(configuration["user"]["count"]).to_csv(
-        configuration["user"]["output_file"], index=False
-    )
-    car_type_generator.generate_many(configuration["car_type"]["count"]).to_csv(
-        configuration["car_type"]["output_file"], index=False
-    )
+        generator: ItemGenerator = generator_mapper[key](fake, start_index=value['start_id'])
+        generator.generate_many(value['count']).to_csv(value['output_file'], index=False)
