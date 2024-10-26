@@ -1,0 +1,8 @@
+user:
+  start_id: 0
+  count: 100
+  output_file: users.csv
+car_type:
+  start_id: 0
+  count: 20
+  output_file: car_types.csv
