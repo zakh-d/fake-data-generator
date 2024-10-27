@@ -1,10 +1,11 @@
+import datetime
 import random
 from abc import ABC
 
 import pandas as pd
 from faker import Faker
 
-from schemas import Car, CarType, ParkingStation, User
+from schemas import Car, CarType, ParkingStation, Rent, User
 
 CAR_TYPES = {
     "opel": ["astra", "insignia"],
@@ -20,10 +21,14 @@ class ItemGenerator(ABC):
         fake: Faker,
         start_index: int = 0,
         dependencies: dict[str, pd.DataFrame] = {},
+        start_period: datetime.datetime = datetime.datetime.min,
+        end_period: datetime.datetime = datetime.datetime.max,
     ) -> None:
         self._fake = fake
         self._curr_idx = start_index
         self._dependencies = dependencies
+        self._start_period = start_period
+        self._end_period = end_period
 
     def _get_curr_idx_and_update(self) -> int:
         self._curr_idx += 1
@@ -93,9 +98,10 @@ class CarGenerator(ItemGenerator):
         fake: Faker,
         start_index: int = 0,
         dependencies: dict[str, pd.DataFrame] = {},
+        start_period: datetime.datetime = datetime.datetime.min,
+        end_period: datetime.datetime = datetime.datetime.max,
     ) -> None:
-        super().__init__(fake, start_index, dependencies)
-
+        super().__init__(fake, start_index, dependencies, start_period, end_period)
         if "car_type" not in self._dependencies:
             raise RuntimeError("car_types dependency was't provided")
 
@@ -115,4 +121,54 @@ class CarGenerator(ItemGenerator):
             + str(random.randint(10000, 99999)),
             "station_id": station_id,
             "car_type_id": random.choice(self._car_type_ids),
+        }
+
+
+def random_date(start: datetime.datetime, end: datetime.datetime) -> datetime.datetime:
+    """
+    This function will return a random datetime between two datetime
+    objects.
+    """
+    delta = end - start
+    int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
+    random_second = random.randrange(int_delta)
+    return start + datetime.timedelta(seconds=random_second)
+
+
+class RentGenerator(ItemGenerator):
+    def __init__(
+        self,
+        fake: Faker,
+        start_index: int = 0,
+        dependencies: dict[str, pd.DataFrame] = {},
+        start_period: datetime.datetime = datetime.datetime.min,
+        end_period: datetime.datetime = datetime.datetime.max,
+    ) -> None:
+        super().__init__(fake, start_index, dependencies, start_period, end_period)
+
+        if "car" not in self._dependencies:
+            raise RuntimeError("car dependency was't provided")
+
+        if "parking_station" not in self._dependencies:
+            raise RuntimeError("parking_station dependency was't provided")
+
+        if "user" not in self._dependencies:
+            raise RuntimeError("user dependency was't provided")
+
+        self._user_ids = list(dependencies["user"]["id"])
+        self._parking_station_ids = list(dependencies["parking_station"]["id"])
+        self._car_plates = list(dependencies["car"]["plate_number"])
+
+    def generate(self) -> Rent:
+        start_date = random_date(self._start_period, self._end_period)
+        rent_time = datetime.timedelta(minutes=random.randint(5, 300))
+        end_date = start_date + rent_time
+        return {
+            "id": self._get_curr_idx_and_update(),
+            "renter": random.choice(self._user_ids),
+            "start_station_id": random.choice(self._parking_station_ids),
+            "start_date": start_date,
+            "end_station_id": random.choice(self._parking_station_ids),
+            "end_date": end_date,
+            "car_plate_number": random.choice(self._car_plates),
         }

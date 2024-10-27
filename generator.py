@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from collections import deque
+import datetime
 
 import yaml
 from faker import Faker
@@ -9,6 +10,7 @@ from item_generators import (
     CarTypeGenerator,
     ItemGenerator,
     ParkingStationGenerator,
+    RentGenerator,
     UserGenerator,
 )
 
@@ -17,6 +19,7 @@ generator_mapper = {
     "car_type": CarTypeGenerator,
     "parking_station": ParkingStationGenerator,
     "car": CarGenerator,
+    "rent": RentGenerator,
 }
 
 
@@ -44,16 +47,34 @@ if __name__ == "__main__":
         if key not in generator_mapper:
             continue
 
+        kwargs = {}
         if "depends_on" in value:
+            has_all_nessesary_data = True
             for dependency in value["depends_on"]:
                 if dependency not in generated_values:
                     generation_queue.append(key)
-                    continue
+                    has_all_nessesary_data = False
+                    break
 
-        dependencies = {d: generated_values[d] for d in value.get("depends_on", [])}
+            if not has_all_nessesary_data:
+                continue
+
+            kwargs["dependencies"] = {
+                d: generated_values[d] for d in value["depends_on"]
+            }
+
+        if "start_period" in value:
+            kwargs["start_period"] = datetime.datetime.strptime(
+                value["start_period"], "%d/%m/%Y %H:%M"
+            )
+
+        if "end_period" in value:
+            kwargs["end_period"] = datetime.datetime.strptime(
+                value["end_period"], "%d/%m/%Y %H:%M"
+            )
 
         generator: ItemGenerator = generator_mapper[key](
-            fake, start_index=value["start_id"], dependencies=dependencies
+            fake, start_index=value["start_id"], **kwargs
         )
 
         generated_values[key] = generator.generate_many(value["count"])
