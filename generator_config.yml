@@ -10,3 +10,10 @@ parking_station:
   start_id: 0
   count: 100
   output_file: generated_data/parking_station.csv
+car:
+  start_id: 0
+  count: 100
+  output_file: generated_data/cars.csv
+  depends_on:
+    - car_type
+    - parking_station
