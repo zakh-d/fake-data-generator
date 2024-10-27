@@ -27,3 +27,9 @@ rent:
     - car
     - user
     - parking_station
+invoice:
+  start_id: 0
+  count: 10000
+  output_file: generated_data/invoice.csv
+  depends_on:
+    - rent

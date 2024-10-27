@@ -1,3 +1,4 @@
+from collections import deque
 import datetime
 import random
 from abc import ABC
@@ -5,7 +6,7 @@ from abc import ABC
 import pandas as pd
 from faker import Faker
 
-from schemas import Car, CarType, ParkingStation, Rent, User
+from schemas import Car, CarType, Invoice, ParkingStation, Rent, User
 
 CAR_TYPES = {
     "opel": ["astra", "insignia"],
@@ -171,4 +172,47 @@ class RentGenerator(ItemGenerator):
             "end_station_id": random.choice(self._parking_station_ids),
             "end_date": end_date,
             "car_plate_number": random.choice(self._car_plates),
+        }
+
+
+class InvoiceGenerator(ItemGenerator):
+    def __init__(
+        self,
+        fake: Faker,
+        start_index: int = 0,
+        dependencies: dict[str, pd.DataFrame] = {},
+        start_period: datetime.datetime = datetime.datetime.min,
+        end_period: datetime.datetime = datetime.datetime.max,
+    ) -> None:
+        super().__init__(fake, start_index, dependencies, start_period, end_period)
+
+        if "rent" not in self._dependencies:
+            raise RuntimeError("rent dependency wasn't provided")
+        self._rents_left = deque(dependencies["rent"].to_dict("records"))
+
+    def _get_next_rent(self) -> Rent:
+        rent = self._rents_left.pop()
+        return {
+            "id": rent["id"],
+            "renter": rent["renter"],
+            "start_station_id": rent["start_station_id"],
+            "start_date": rent["start_date"],
+            "end_station_id": rent["end_station_id"],
+            "end_date": rent["end_date"],
+            "car_plate_number": rent["car_plate_number"],
+        }
+
+    def generate(self) -> Invoice:
+        rent = self._get_next_rent()
+        rent_time_in_minutes = 30
+        if rent["end_date"] is not None:
+            delta = rent["end_date"] - rent["start_date"]
+            rent_time_in_minutes = delta.seconds / 60
+        return {
+            "number": self._get_curr_idx_and_update(),
+            "rent_id": rent["id"],
+            "date": rent["start_date"].date(),
+            "currency": "pln",
+            "total_price": rent_time_in_minutes * random.random() * 10,
+            "description": f'Car Renting for {rent["start_date"].date()}',
         }

@@ -40,7 +40,7 @@ class Rent(TypedDict):
     end_station_id: int | None
 
 
-class Invoices(TypedDict):
+class Invoice(TypedDict):
     number: int
     total_price: float
     description: str

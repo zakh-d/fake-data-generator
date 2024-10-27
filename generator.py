@@ -1,6 +1,6 @@
+import datetime
 from argparse import ArgumentParser
 from collections import deque
-import datetime
 
 import yaml
 from faker import Faker
@@ -8,6 +8,7 @@ from faker import Faker
 from item_generators import (
     CarGenerator,
     CarTypeGenerator,
+    InvoiceGenerator,
     ItemGenerator,
     ParkingStationGenerator,
     RentGenerator,
@@ -20,6 +21,7 @@ generator_mapper = {
     "parking_station": ParkingStationGenerator,
     "car": CarGenerator,
     "rent": RentGenerator,
+    "invoice": InvoiceGenerator,
 }
 
 
