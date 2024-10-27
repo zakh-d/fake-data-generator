@@ -1,0 +1,41 @@
+user:
+  start_id: 100
+  count: 10
+  load_from: generated_data/users_T1.csv
+  output_file: generated_data/users_T2.csv
+car_type:
+  start_id: 20
+  count: 5
+  load_from: generated_data/car_types_T1.csv
+  output_file: generated_data/car_types_T2.csv
+parking_station:
+  start_id: 100
+  count: 10
+  load_from: generated_data/parking_station_T1.csv
+  output_file: generated_data/parking_station_T2.csv
+car:
+  start_id: 100
+  count: 10
+  load_from: generated_data/cars_T1.csv
+  output_file: generated_data/cars_T2.csv
+  depends_on:
+    - car_type
+    - parking_station
+rent:
+  start_id: 1000
+  count: 100
+  load_from: generated_data/rents_T1.csv
+  output_file: generated_data/rents_T2.csv
+  start_period: 01/01/2022 6:00
+  end_period: 01/01/2024 6:00
+  depends_on:
+    - car
+    - user
+    - parking_station
+invoice:
+  start_id: 1000
+  count: 100
+  load_from: generated_data/invoice_T1.csv
+  output_file: generated_data/invoice_T2.csv
+  depends_on:
+    - rent

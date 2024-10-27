@@ -1,26 +1,26 @@
 user:
   start_id: 0
   count: 100
-  output_file: generated_data/users.csv
+  output_file: generated_data/users_T1.csv
 car_type:
   start_id: 0
   count: 20
-  output_file: generated_data/car_types.csv
+  output_file: generated_data/car_types_T1.csv
 parking_station:
   start_id: 0
   count: 100
-  output_file: generated_data/parking_station.csv
+  output_file: generated_data/parking_station_T1.csv
 car:
   start_id: 0
   count: 100
-  output_file: generated_data/cars.csv
+  output_file: generated_data/cars_T1.csv
   depends_on:
     - car_type
     - parking_station
 rent:
   start_id: 0
-  count: 10000
-  output_file: generated_data/rents.csv
+  count: 1000
+  output_file: generated_data/rents_T1.csv
   start_period: 01/01/2016 6:00
   end_period: 01/01/2020 6:00
   depends_on:
@@ -29,7 +29,7 @@ rent:
     - parking_station
 invoice:
   start_id: 0
-  count: 10000
-  output_file: generated_data/invoice.csv
+  count: 1000
+  output_file: generated_data/invoice_T1.csv
   depends_on:
     - rent

@@ -115,7 +115,7 @@ class CarGenerator(ItemGenerator):
     def generate(self) -> Car:
         station_id = None
         if random.random() < 0.3:
-            station_id = random.choice(self._parking_station_ids)
+            station_id = int(random.choice(self._parking_station_ids))
 
         return {
             "plate_number": random.choice(PLATE_REGIONS)

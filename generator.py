@@ -2,6 +2,7 @@ import datetime
 from argparse import ArgumentParser
 from collections import deque
 
+import pandas as pd
 import yaml
 from faker import Faker
 
@@ -49,6 +50,9 @@ if __name__ == "__main__":
         if key not in generator_mapper:
             continue
 
+        if "load_from" in value:
+            generated_values[key] = pd.read_csv(value["load_from"])
+
         kwargs = {}
         if "depends_on" in value:
             has_all_nessesary_data = True
@@ -79,5 +83,10 @@ if __name__ == "__main__":
             fake, start_index=value["start_id"], **kwargs
         )
 
-        generated_values[key] = generator.generate_many(value["count"])
-        generated_values[key].to_csv(value["output_file"], index=False)
+        if key in generated_values:
+            new_data = generator.generate_many(value["count"])
+            generated_values[key] = pd.concat([generated_values[key], new_data])
+            new_data.to_csv(value["output_file"], index=False)
+        else:
+            generated_values[key] = generator.generate_many(value["count"])
+            generated_values[key].to_csv(value["output_file"], index=False)
