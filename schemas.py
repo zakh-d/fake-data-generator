@@ -47,3 +47,19 @@ class Invoice(TypedDict):
     currency: str
     date: datetime.date
     rent_id: int
+
+
+class CarTypeExcel(TypedDict):
+    id: int
+    model: str
+    manufacturer: str
+    production_year: int
+    price: float
+    count: int
+
+
+class ParkingStationExcel(TypedDict):
+    id: int
+    localization: str
+    max_capacity: int
+    city: str

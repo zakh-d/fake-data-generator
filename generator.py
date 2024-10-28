@@ -8,6 +8,7 @@ from faker import Faker
 
 from item_generators import (
     CarGenerator,
+    CarTypeExcelGenerator,
     CarTypeGenerator,
     InvoiceGenerator,
     ItemGenerator,
@@ -23,6 +24,7 @@ generator_mapper = {
     "car": CarGenerator,
     "rent": RentGenerator,
     "invoice": InvoiceGenerator,
+    "car_type_excel": CarTypeExcelGenerator,
 }
 
 
@@ -79,9 +81,10 @@ if __name__ == "__main__":
                 value["end_period"], "%d/%m/%Y %H:%M"
             )
 
-        generator: ItemGenerator = generator_mapper[key](
-            fake, start_index=value["start_id"], **kwargs
-        )
+        if "start_id" in value:
+            kwargs["start_id"] = value["start_id"]
+
+        generator: ItemGenerator = generator_mapper[key](fake, **kwargs)
 
         if key in generated_values:
             new_data = generator.generate_many(value["count"])

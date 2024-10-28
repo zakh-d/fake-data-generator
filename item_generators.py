@@ -2,11 +2,12 @@ from collections import deque
 import datetime
 import random
 from abc import ABC
+from typing import Deque
 
 import pandas as pd
 from faker import Faker
 
-from schemas import Car, CarType, Invoice, ParkingStation, Rent, User
+from schemas import Car, CarType, CarTypeExcel, Invoice, ParkingStation, Rent, User
 
 CAR_TYPES = {
     "opel": ["astra", "insignia"],
@@ -20,13 +21,13 @@ class ItemGenerator(ABC):
     def __init__(
         self,
         fake: Faker,
-        start_index: int = 0,
+        start_id: int = 0,
         dependencies: dict[str, pd.DataFrame] = {},
         start_period: datetime.datetime = datetime.datetime.min,
         end_period: datetime.datetime = datetime.datetime.max,
     ) -> None:
         self._fake = fake
-        self._curr_idx = start_index
+        self._curr_idx = start_id
         self._dependencies = dependencies
         self._start_period = start_period
         self._end_period = end_period
@@ -97,12 +98,12 @@ class CarGenerator(ItemGenerator):
     def __init__(
         self,
         fake: Faker,
-        start_index: int = 0,
+        start_id: int = 0,
         dependencies: dict[str, pd.DataFrame] = {},
         start_period: datetime.datetime = datetime.datetime.min,
         end_period: datetime.datetime = datetime.datetime.max,
     ) -> None:
-        super().__init__(fake, start_index, dependencies, start_period, end_period)
+        super().__init__(fake, start_id, dependencies, start_period, end_period)
         if "car_type" not in self._dependencies:
             raise RuntimeError("car_types dependency was't provided")
 
@@ -140,12 +141,12 @@ class RentGenerator(ItemGenerator):
     def __init__(
         self,
         fake: Faker,
-        start_index: int = 0,
+        start_id: int = 0,
         dependencies: dict[str, pd.DataFrame] = {},
         start_period: datetime.datetime = datetime.datetime.min,
         end_period: datetime.datetime = datetime.datetime.max,
     ) -> None:
-        super().__init__(fake, start_index, dependencies, start_period, end_period)
+        super().__init__(fake, start_id, dependencies, start_period, end_period)
 
         if "car" not in self._dependencies:
             raise RuntimeError("car dependency was't provided")
@@ -179,12 +180,12 @@ class InvoiceGenerator(ItemGenerator):
     def __init__(
         self,
         fake: Faker,
-        start_index: int = 0,
+        start_id: int = 0,
         dependencies: dict[str, pd.DataFrame] = {},
         start_period: datetime.datetime = datetime.datetime.min,
         end_period: datetime.datetime = datetime.datetime.max,
     ) -> None:
-        super().__init__(fake, start_index, dependencies, start_period, end_period)
+        super().__init__(fake, start_id, dependencies, start_period, end_period)
 
         if "rent" not in self._dependencies:
             raise RuntimeError("rent dependency wasn't provided")
@@ -215,4 +216,55 @@ class InvoiceGenerator(ItemGenerator):
             "currency": "pln",
             "total_price": rent_time_in_minutes * random.random() * 10,
             "description": f'Car Renting for {rent["start_date"].date()}',
+        }
+
+
+class CarTypeExcelGenerator(ItemGenerator):
+    def __init__(
+        self,
+        fake: Faker,
+        start_id: int = 0,
+        dependencies: dict[str, pd.DataFrame] = {},
+        start_period: datetime.datetime = datetime.datetime.min,
+        end_period: datetime.datetime = datetime.datetime.max,
+    ) -> None:
+        super().__init__(fake, start_id, dependencies, start_period, end_period)
+
+        if "car" not in dependencies:
+            raise RuntimeError("car dependency wasn't added")
+
+        if "car_type" not in dependencies:
+            raise RuntimeError("car_type dependency wasn't added")
+
+        self._car_types = deque(dependencies["car_type"].to_dict("records"))
+        self._car_types_count = self._parse_car_types_count()
+
+    def _parse_car_types_count(self) -> dict[int, int]:
+        car_type_counts = {}
+        for _, car in self._dependencies["car"].iterrows():
+            if car["car_type_id"] in car_type_counts:
+                car_type_counts[car["car_type_id"]] += 1
+            else:
+                car_type_counts[car["car_type_id"]] = 1
+        return car_type_counts
+
+    def _get_next_car_type(self) -> CarType:
+        car_type = self._car_types.pop()
+        return {
+            "id": car_type["id"],
+            "model": car_type["model"],
+            "manufacturer": car_type["manufacturer"],
+            "production_year": car_type["production_year"],
+            "price_per_minute": car_type["price_per_minute"],
+        }
+
+    def generate(self) -> CarTypeExcel:
+        car_type = self._get_next_car_type()
+        return {
+            "id": car_type["id"],
+            "model": car_type["model"],
+            "manufacturer": car_type["manufacturer"],
+            "production_year": car_type["production_year"],
+            "price": random.randint(60_000, 150_000),
+            "count": self._car_types_count.get(car_type["id"], 0),
         }
