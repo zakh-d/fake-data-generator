@@ -12,6 +12,7 @@ from item_generators import (
     CarTypeGenerator,
     InvoiceGenerator,
     ItemGenerator,
+    ParkingStationExcelGenerator,
     ParkingStationGenerator,
     RentGenerator,
     UserGenerator,
@@ -25,6 +26,7 @@ generator_mapper = {
     "rent": RentGenerator,
     "invoice": InvoiceGenerator,
     "car_type_excel": CarTypeExcelGenerator,
+    "parking_station_excel": ParkingStationExcelGenerator,
 }
 
 

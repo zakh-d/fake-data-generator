@@ -1,12 +1,21 @@
-from collections import deque
 import datetime
 import random
 from abc import ABC
+from collections import deque
 
 import pandas as pd
 from faker import Faker
 
-from schemas import Car, CarType, CarTypeExcel, Invoice, ParkingStation, Rent, User
+from schemas import (
+    Car,
+    CarType,
+    CarTypeExcel,
+    Invoice,
+    ParkingStation,
+    ParkingStationExcel,
+    Rent,
+    User,
+)
 
 CAR_TYPES = {
     "opel": ["astra", "insignia"],
@@ -62,8 +71,8 @@ class UserGenerator(ItemGenerator):
 class ParkingStationGenerator(ItemGenerator):
     def generate(self) -> ParkingStation:
         id_ = self._get_curr_idx_and_update()
-        latitude = random.random()
-        longitude = random.random()
+        latitude = float(self._fake.latitude())
+        longitude = float(self._fake.longitude())
         max_capacity = random.randint(5, 11)
 
         return {
@@ -118,8 +127,7 @@ class CarGenerator(ItemGenerator):
             station_id = int(random.choice(self._parking_station_ids))
 
         return {
-            "plate_number": random.choice(PLATE_REGIONS)
-            + str(random.randint(10000, 99999)),
+            "plate_number": self._fake.license_plate(),
             "station_id": station_id,
             "car_type_id": random.choice(self._car_type_ids),
         }
@@ -266,4 +274,43 @@ class CarTypeExcelGenerator(ItemGenerator):
             "production_year": car_type["production_year"],
             "price": random.randint(60_000, 150_000),
             "count": self._car_types_count.get(car_type["id"], 0),
+        }
+
+
+class ParkingStationExcelGenerator(ItemGenerator):
+    def __init__(
+        self,
+        fake: Faker,
+        start_id: int = 0,
+        dependencies: dict[str, pd.DataFrame] = {},
+        start_period: datetime.datetime = datetime.datetime.min,
+        end_period: datetime.datetime = datetime.datetime.max,
+    ) -> None:
+        super().__init__(fake, start_id, dependencies, start_period, end_period)
+
+        if "parking_station" not in dependencies:
+            raise RuntimeError("parking_station dependency wasn't added")
+
+        self._parking_stations = deque(
+            dependencies["parking_station"].to_dict("records")
+        )
+
+    def _get_next_parking_station(self) -> ParkingStation:
+        station = self._parking_stations.pop()
+
+        return {
+            "id": station["id"],
+            "latitude": station["latitude"],
+            "longitude": station["longitude"],
+            "max_capacity": station["max_capacity"],
+        }
+
+    def generate(self) -> ParkingStationExcel:
+        station = self._get_next_parking_station()
+        city = self._fake.city()
+        return {
+            "id": station["id"],
+            "max_capacity": station["max_capacity"],
+            "city": city,
+            "localization": f"{city}, near żabka",
         }
