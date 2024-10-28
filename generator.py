@@ -56,6 +56,8 @@ if __name__ == "__main__":
 
         if "load_from" in value:
             generated_values[key] = pd.read_csv(value["load_from"])
+            if len(value) == 1:
+                continue
 
         kwargs = {}
         if "depends_on" in value:
