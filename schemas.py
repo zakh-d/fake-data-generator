@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import Literal, TypedDict
 import datetime
 
 
@@ -12,7 +12,7 @@ class User(TypedDict):
 class Car(TypedDict):
     plate_number: str
     car_type_id: int
-    station_id: int | None
+    station_id: int | Literal[""] | None
 
 
 class CarType(TypedDict):

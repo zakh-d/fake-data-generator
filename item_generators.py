@@ -2,7 +2,6 @@ from collections import deque
 import datetime
 import random
 from abc import ABC
-from typing import Deque
 
 import pandas as pd
 from faker import Faker
@@ -114,7 +113,7 @@ class CarGenerator(ItemGenerator):
         self._parking_station_ids = list(self._dependencies["parking_station"]["id"])
 
     def generate(self) -> Car:
-        station_id = None
+        station_id = ""
         if random.random() < 0.3:
             station_id = int(random.choice(self._parking_station_ids))
 
