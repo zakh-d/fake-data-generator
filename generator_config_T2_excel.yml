@@ -1,0 +1,17 @@
+car_type:
+  load_from: generated_data/car_types_T2.csv
+parking_station:
+  load_from: generated_data/parking_station_T2.csv
+car:
+  load_from: generated_data/cars_T2.csv
+parking_station_excel:
+  count: 10
+  depends_on:
+    - parking_station
+  output_file: generated_data/parking_stations_excel_T2.csv
+car_type_excel:
+  count: 5
+  depends_on:
+    - car
+    - car_type
+  output_file: generated_data/cars_excel_T2.csv
