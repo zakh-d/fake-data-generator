@@ -61,7 +61,7 @@ class UserGenerator(ItemGenerator):
 
 class ParkingStationGenerator(ItemGenerator):
     def generate(self) -> ParkingStation:
-        id_ = int(self._get_curr_idx_and_update())
+        id_ = self._get_curr_idx_and_update()
         latitude = random.random()
         longitude = random.random()
         max_capacity = random.randint(5, 11)
@@ -120,7 +120,7 @@ class CarGenerator(ItemGenerator):
         return {
             "plate_number": random.choice(PLATE_REGIONS)
             + str(random.randint(10000, 99999)),
-            "station_id": int(station_id) if station_id is not None else 0, 
+            "station_id": station_id,
             "car_type_id": random.choice(self._car_type_ids),
         }
 
