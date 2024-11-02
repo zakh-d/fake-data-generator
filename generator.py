@@ -93,7 +93,7 @@ if __name__ == "__main__":
         if key in generated_values:
             new_data = generator.generate_many(value["count"])
             generated_values[key] = pd.concat([generated_values[key], new_data])
-            new_data.to_csv(value["output_file"], index=False)
         else:
             generated_values[key] = generator.generate_many(value["count"])
-            generated_values[key].to_csv(value["output_file"], index=False)
+
+        generated_values[key].to_csv(value["output_file"], index=False)

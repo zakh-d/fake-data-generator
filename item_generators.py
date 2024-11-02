@@ -99,9 +99,6 @@ class CarTypeGenerator(ItemGenerator):
         }
 
 
-PLATE_REGIONS = ["GD", "GDA", "GDY", "GSP"]
-
-
 class CarGenerator(ItemGenerator):
     def __init__(
         self,

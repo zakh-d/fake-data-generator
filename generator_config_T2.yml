@@ -39,3 +39,14 @@ invoice:
   output_file: generated_data/invoice_T2.csv
   depends_on:
     - rent
+parking_station_excel:
+  count: 10
+  depends_on:
+    - parking_station
+  output_file: generated_data/parking_stations_excel_T2.csv
+car_type_excel:
+  count: 5
+  depends_on:
+    - car
+    - car_type
+  output_file: generated_data/cars_excel_T2.csv
