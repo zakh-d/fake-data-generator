@@ -55,7 +55,10 @@ if __name__ == "__main__":
             continue
 
         if "load_from" in value:
-            generated_values[key] = pd.read_csv(value["load_from"])
+            if key == "car":
+                generated_values[key] = pd.read_csv(value["load_from"], dtype={"station_id": "object"})
+            else:
+                generated_values[key] = pd.read_csv(value["load_from"])
             if len(value) == 1:
                 continue
 
@@ -88,9 +91,15 @@ if __name__ == "__main__":
         if "start_id" in value:
             kwargs["start_id"] = value["start_id"]
 
+        if "modification_probability" in value:
+            kwargs["modification_probability"] = value["modification_probability"]
+
         generator: ItemGenerator = generator_mapper[key](fake, **kwargs)
 
         if key in generated_values:
+            if generator.supports_modification:
+                modified_data = generator.modify_many(generated_values[key])
+                generated_values[key] = modified_data
             new_data = generator.generate_many(value["count"])
             generated_values[key] = pd.concat([generated_values[key], new_data])
         else:
