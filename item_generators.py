@@ -172,6 +172,7 @@ class CarGenerator(ItemGenerator):
             station_id = random.choice(self._parking_station_ids)
 
         return {
+            "id": self._get_curr_idx_and_update(),
             "plate_number": self._fake.license_plate(),
             "station_id": station_id,
             "car_type_id": random.choice(self._car_type_ids),
@@ -226,7 +227,7 @@ class RentGenerator(ItemGenerator):
 
         self._user_ids = list(dependencies["user"]["id"])
         self._parking_station_ids = list(dependencies["parking_station"]["id"])
-        self._car_plates = list(dependencies["car"]["plate_number"])
+        self._car_ids = list(dependencies["car"]["id"])
 
     def generate(self) -> Rent:
         start_date = random_date(self._start_period, self._end_period)
@@ -239,7 +240,7 @@ class RentGenerator(ItemGenerator):
             "start_date": start_date,
             "end_station_id": random.choice(self._parking_station_ids),
             "end_date": end_date,
-            "car_plate_number": random.choice(self._car_plates),
+            "car_id": random.choice(self._car_ids),
         }
 
 
@@ -275,7 +276,7 @@ class InvoiceGenerator(ItemGenerator):
             "start_date": rent["start_date"],
             "end_station_id": rent["end_station_id"],
             "end_date": rent["end_date"],
-            "car_plate_number": rent["car_plate_number"],
+            "car_id": rent["car_id"],
         }
 
     def generate(self) -> Invoice:
