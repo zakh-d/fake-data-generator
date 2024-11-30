@@ -10,7 +10,6 @@ class User(TypedDict):
 
 
 class Car(TypedDict):
-    id: int
     plate_number: str
     car_type_id: int
 
@@ -33,7 +32,7 @@ class ParkingStation(TypedDict):
 class Rent(TypedDict):
     id: int
     renter: int
-    car_id: int
+    car_plate_number: int
     start_date: datetime.datetime
     end_date: datetime.datetime | None
     start_station_id: int

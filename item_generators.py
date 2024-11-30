@@ -89,19 +89,34 @@ class UserGenerator(ItemGenerator):
 
 
 class ParkingStationGenerator(ItemGenerator):
-   
-    def __init__(self, fake: Faker, start_id: int = 0, dependencies: dict[str, pd.DataFrame] = {}, start_period: datetime.datetime = datetime.datetime.min, end_period: datetime.datetime = datetime.datetime.max, modification_probability: float = 0) -> None:
-        super().__init__(fake, start_id, dependencies, start_period, end_period, modification_probability, supports_modification=True)
+    def __init__(
+        self,
+        fake: Faker,
+        start_id: int = 0,
+        dependencies: dict[str, pd.DataFrame] = {},
+        start_period: datetime.datetime = datetime.datetime.min,
+        end_period: datetime.datetime = datetime.datetime.max,
+        modification_probability: float = 0,
+    ) -> None:
+        super().__init__(
+            fake,
+            start_id,
+            dependencies,
+            start_period,
+            end_period,
+            modification_probability,
+            supports_modification=True,
+        )
 
     def modify(self, original: ParkingStation) -> ParkingStation:
         copied = original.copy()
-        copied['max_capacity'] += random.randint(-2, 3)
+        copied["max_capacity"] += random.randint(-2, 3)
         return copied
-    
+
     def modify_many(self, original: pd.DataFrame) -> pd.DataFrame:
         modified = super().modify_many(original)
-        return modified.astype({'max_capacity': 'int32', 'id': 'int32'})
-    
+        return modified.astype({"max_capacity": "int32", "id": "int32"})
+
     def generate(self) -> ParkingStation:
         id_ = self._get_curr_idx_and_update()
         latitude = float(self._fake.latitude())
@@ -179,16 +194,14 @@ class CarGenerator(ItemGenerator):
         if "car_type" not in self._dependencies:
             raise RuntimeError("car_types dependency was't provided")
 
-
         self._car_type_ids = list(self._dependencies["car_type"]["id"])
 
     def generate(self) -> Car:
-
         return {
-            "id": self._get_curr_idx_and_update(),
             "plate_number": self._fake.license_plate(),
             "car_type_id": random.choice(self._car_type_ids),
         }
+
 
 def random_date(start: datetime.datetime, end: datetime.datetime) -> datetime.datetime:
     """
@@ -231,7 +244,7 @@ class RentGenerator(ItemGenerator):
 
         self._user_ids = list(dependencies["user"]["id"])
         self._parking_station_ids = list(dependencies["parking_station"]["id"])
-        self._car_ids = list(dependencies["car"]["id"])
+        self._car_numbers = list(dependencies["car"]["plate_number"])
 
     def generate(self) -> Rent:
         start_date = random_date(self._start_period, self._end_period)
@@ -244,7 +257,7 @@ class RentGenerator(ItemGenerator):
             "start_date": start_date,
             "end_station_id": random.choice(self._parking_station_ids),
             "end_date": end_date,
-            "car_id": random.choice(self._car_ids),
+            "car_plate_number": random.choice(self._car_numbers),
         }
 
 
@@ -280,7 +293,7 @@ class InvoiceGenerator(ItemGenerator):
             "start_date": rent["start_date"],
             "end_station_id": rent["end_station_id"],
             "end_date": rent["end_date"],
-            "car_id": rent["car_id"],
+            "car_plate_number": rent["car_plate_number"],
         }
 
     def generate(self) -> Invoice:
@@ -406,8 +419,23 @@ class ParkingStationExcelGenerator(ItemGenerator):
 
 
 class CarsOnStationGenerator(ItemGenerator):
-    def __init__(self, fake: Faker, start_id: int = 0, dependencies: dict[str, pd.DataFrame] = {}, start_period: datetime.datetime = datetime.datetime.min, end_period: datetime.datetime = datetime.datetime.max) -> None:
-        super().__init__(fake, start_id, dependencies, start_period, end_period, 0, supports_modification=False)
+    def __init__(
+        self,
+        fake: Faker,
+        start_id: int = 0,
+        dependencies: dict[str, pd.DataFrame] = {},
+        start_period: datetime.datetime = datetime.datetime.min,
+        end_period: datetime.datetime = datetime.datetime.max,
+    ) -> None:
+        super().__init__(
+            fake,
+            start_id,
+            dependencies,
+            start_period,
+            end_period,
+            0,
+            supports_modification=False,
+        )
 
         if "car" not in self._dependencies:
             raise RuntimeError("car dependency was not provided")
@@ -417,14 +445,13 @@ class CarsOnStationGenerator(ItemGenerator):
         self._parking_station_ids = list(dependencies["parking_station"]["id"])
         self._car_numbers = list(dependencies["car"]["plate_number"])
 
-
     def generate(self) -> CarOnStation:
-        
         random_datetime = random_date(self._start_period, self._end_period)
         return {
-            'id': self._get_curr_idx_and_update(),
-            'start_time': random_datetime,
-            'end_time': random_datetime + datetime.timedelta(minutes=random.randint(10, 300)),
-            'car_plate_number': random.choice(self._car_numbers),
-            'parking_station_id': random.choice(self._parking_station_ids)
+            "id": self._get_curr_idx_and_update(),
+            "start_time": random_datetime,
+            "end_time": random_datetime
+            + datetime.timedelta(minutes=random.randint(10, 300)),
+            "car_plate_number": random.choice(self._car_numbers),
+            "parking_station_id": random.choice(self._parking_station_ids),
         }
