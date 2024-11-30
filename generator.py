@@ -10,6 +10,7 @@ from item_generators import (
     CarGenerator,
     CarTypeExcelGenerator,
     CarTypeGenerator,
+    CarsOnStationGenerator,
     InvoiceGenerator,
     ItemGenerator,
     ParkingStationExcelGenerator,
@@ -27,6 +28,7 @@ generator_mapper = {
     "invoice": InvoiceGenerator,
     "car_type_excel": CarTypeExcelGenerator,
     "parking_station_excel": ParkingStationExcelGenerator,
+    "car_on_station": CarsOnStationGenerator
 }
 
 

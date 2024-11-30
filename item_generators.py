@@ -62,14 +62,16 @@ class ItemGenerator(ABC):
         return pd.DataFrame(items)
 
     def _modify_helper(self, row: pd.Series) -> pd.Series:
-        modified_row = self.modify(row)
+        if random.random() < self._modification_probability:
+            modified_row = self.modify(row)
+        else:
+            modified_row = row
         for col, new_value in modified_row.items():
             row[col] = new_value
         return row
 
     def modify_many(self, original: pd.DataFrame) -> pd.DataFrame:
-        to_modify = original.sample(frac=self._modification_probability)
-        return to_modify.apply(self._modify_helper, axis=1)
+        return original.apply(self._modify_helper, axis=1)
 
 
 class UserGenerator(ItemGenerator):
@@ -87,6 +89,19 @@ class UserGenerator(ItemGenerator):
 
 
 class ParkingStationGenerator(ItemGenerator):
+   
+    def __init__(self, fake: Faker, start_id: int = 0, dependencies: dict[str, pd.DataFrame] = {}, start_period: datetime.datetime = datetime.datetime.min, end_period: datetime.datetime = datetime.datetime.max, modification_probability: float = 0) -> None:
+        super().__init__(fake, start_id, dependencies, start_period, end_period, modification_probability, supports_modification=True)
+
+    def modify(self, original: ParkingStation) -> ParkingStation:
+        copied = original.copy()
+        copied['max_capacity'] += random.randint(-2, 3)
+        return copied
+    
+    def modify_many(self, original: pd.DataFrame) -> pd.DataFrame:
+        modified = super().modify_many(original)
+        return modified.astype({'max_capacity': 'int32', 'id': 'int32'})
+    
     def generate(self) -> ParkingStation:
         id_ = self._get_curr_idx_and_update()
         latitude = float(self._fake.latitude())

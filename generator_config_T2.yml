@@ -14,6 +14,7 @@ parking_station:
   count: 10
   load_from: generated_data/parking_station_T1.csv
   output_file: generated_data/parking_station_T2.csv
+  modification_probability: 0.2
 car:
   start_id: 100
   count: 10
@@ -51,3 +52,13 @@ car_type_excel:
     - car
     - car_type
   output_file: generated_data/cars_excel_T2.csv
+car_on_station:
+  start_id: 1000
+  count: 100
+  load_from: generated_data/car_on_station_T1.csv
+  output_file: generated_data/car_on_station_T2.csv
+  depends_on:
+    - car
+    - parking_station
+  start_period: 01/01/2022 6:00
+  end_period: 01/01/2024 6:00

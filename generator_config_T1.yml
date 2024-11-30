@@ -44,3 +44,11 @@ car_type_excel:
     - car
     - car_type
   output_file: generated_data/cars_excel_T1.csv
+car_on_station:
+  count: 1000
+  depends_on:
+    - car
+    - parking_station
+  output_file: generated_data/car_on_station_T1.csv
+  start_period: 01/01/2022 6:00
+  end_period: 01/01/2024 6:00
