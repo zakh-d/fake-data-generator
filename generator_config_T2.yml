@@ -17,7 +17,6 @@ parking_station:
 car:
   start_id: 100
   count: 10
-  modification_probability: 0.1
   load_from: generated_data/cars_T1.csv
   output_file: generated_data/cars_T2.csv
   depends_on:

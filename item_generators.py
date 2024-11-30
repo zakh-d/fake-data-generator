@@ -8,6 +8,7 @@ from faker import Faker
 
 from schemas import (
     Car,
+    CarOnStation,
     CarType,
     CarTypeExcel,
     Invoice,
@@ -61,14 +62,14 @@ class ItemGenerator(ABC):
         return pd.DataFrame(items)
 
     def _modify_helper(self, row: pd.Series) -> pd.Series:
-        if random.random() < self._modification_probability:
-            modified_row = self.modify(row)
-            for col, new_value in modified_row.items():
-                row[col] = new_value
+        modified_row = self.modify(row)
+        for col, new_value in modified_row.items():
+            row[col] = new_value
         return row
 
     def modify_many(self, original: pd.DataFrame) -> pd.DataFrame:
-        return original.apply(self._modify_helper, axis=1)
+        to_modify = original.sample(frac=self._modification_probability)
+        return to_modify.apply(self._modify_helper, axis=1)
 
 
 class UserGenerator(ItemGenerator):
@@ -135,7 +136,11 @@ class CarTypeGenerator(ItemGenerator):
         }
 
     def modify(self, original: CarType) -> CarType:
-        return {**original, "price_per_minute": random.random() * 10}
+        return {
+            **original,
+            "id": self._get_curr_idx_and_update(),
+            "price_per_minute": random.random() * 10,
+        }
 
 
 class CarGenerator(ItemGenerator):
@@ -146,7 +151,6 @@ class CarGenerator(ItemGenerator):
         dependencies: dict[str, pd.DataFrame] = {},
         start_period: datetime.datetime = datetime.datetime.min,
         end_period: datetime.datetime = datetime.datetime.max,
-        modification_probability: float = 0.0,
     ) -> None:
         super().__init__(
             fake,
@@ -154,37 +158,22 @@ class CarGenerator(ItemGenerator):
             dependencies,
             start_period,
             end_period,
-            modification_probability,
-            supports_modification=True,
+            0,
+            supports_modification=False,
         )
         if "car_type" not in self._dependencies:
             raise RuntimeError("car_types dependency was't provided")
 
-        if "parking_station" not in self._dependencies:
-            raise RuntimeError("car_types dependency was't provided")
 
         self._car_type_ids = list(self._dependencies["car_type"]["id"])
-        self._parking_station_ids = list(self._dependencies["parking_station"]["id"])
 
     def generate(self) -> Car:
-        station_id = ""
-        if random.random() < 0.3:
-            station_id = random.choice(self._parking_station_ids)
 
         return {
             "id": self._get_curr_idx_and_update(),
             "plate_number": self._fake.license_plate(),
-            "station_id": station_id,
             "car_type_id": random.choice(self._car_type_ids),
         }
-
-    def modify(self, original: Car) -> Car:
-        station_id = ""
-        if random.random() < 0.3:
-            station_id = random.choice(self._parking_station_ids)
-            original["station_id"] = station_id
-        return original
-
 
 def random_date(start: datetime.datetime, end: datetime.datetime) -> datetime.datetime:
     """
@@ -398,4 +387,29 @@ class ParkingStationExcelGenerator(ItemGenerator):
             "max_capacity": station["max_capacity"],
             "city": city,
             "localization": f"{city}, near żabka",
+        }
+
+
+class CarsOnStationGenerator(ItemGenerator):
+    def __init__(self, fake: Faker, start_id: int = 0, dependencies: dict[str, pd.DataFrame] = {}, start_period: datetime.datetime = datetime.datetime.min, end_period: datetime.datetime = datetime.datetime.max) -> None:
+        super().__init__(fake, start_id, dependencies, start_period, end_period, 0, supports_modification=False)
+
+        if "car" not in self._dependencies:
+            raise RuntimeError("car dependency was not provided")
+
+        if "parking_station" not in self._dependencies:
+            raise RuntimeError("parking_station dependency was not provided")
+        self._parking_station_ids = list(dependencies["parking_station"]["id"])
+        self._car_numbers = list(dependencies["car"]["plate_number"])
+
+
+    def generate(self) -> CarOnStation:
+        
+        random_datetime = random_date(self._start_period, self._end_period)
+        return {
+            'id': self._get_curr_idx_and_update(),
+            'start_time': random_datetime,
+            'end_time': random_datetime + datetime.timedelta(minutes=random.randint(10, 300)),
+            'car_plate_number': random.choice(self._car_numbers),
+            'parking_station_id': random.choice(self._parking_station_ids)
         }

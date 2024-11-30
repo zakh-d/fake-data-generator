@@ -1,4 +1,4 @@
-from typing import Literal, TypedDict
+from typing import TypedDict
 import datetime
 
 
@@ -13,7 +13,6 @@ class Car(TypedDict):
     id: int
     plate_number: str
     car_type_id: int
-    station_id: int | Literal[""] | None
 
 
 class CarType(TypedDict):
@@ -64,3 +63,12 @@ class ParkingStationExcel(TypedDict):
     localization: str
     max_capacity: int
     city: str
+
+
+class CarOnStation(TypedDict):
+
+    id: int
+    car_plate_number: str
+    parking_station_id: int
+    start_time: datetime.datetime
+    end_time: datetime.datetime
